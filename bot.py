@@ -46,7 +46,7 @@ class MastodonSpotifyBot:
         "função para o gerenciador SongLink"
         return  Odesli().getByUrl(url).songLink
 
-    def get_recently_played() -> dict:
+    def get_recently_played(self) -> dict:
         "função para pegar os dados do Spotify"
         results = self.sp.current_user_playing_track()
         if results["is_playing"]:
