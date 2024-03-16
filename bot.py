@@ -84,7 +84,10 @@ class MastodonSpotifyBot:
 
             if last_song == dados["item"]["name"]:
                 logger.warning(f"Current song is the same as last song: {last_song}")
-                time.sleep(self.settings["interval"])
+                if "progress_ms" in dados:
+                    time.sleep(int(dados["progress_ms"]) / 1000)
+                else:
+                    time.sleep(FIXED_INTERVAL)
                 continue
 
             last_song = dados["item"]["name"]
