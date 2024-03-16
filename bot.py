@@ -74,7 +74,7 @@ class MastodonSpotifyBot:
             logger.debug("dados json:\n" + json.dumps(dados, indent=4) )
 
             if not "is_playing" in dados:
-                logger.error("Missing entry \"is_playing9\"")
+                logger.error("Missing entry \"is_playing\"")
                 time.sleep(FIXED_INTERVAL)
                 continue
 
@@ -133,7 +133,13 @@ class MastodonSpotifyBot:
 
     def get_recently_played(self) -> dict:
         "função para pegar os dados do Spotify"
-        results = self.sp.current_user_playing_track()
+        try:
+            results = self.sp.current_user_playing_track()
+        except TypeError:
+            return {
+                "is_playing": False,
+                "progress_ms": "%d" % 1 * 60 * 1000 # 1 minute
+            }
         if results["is_playing"]:
             return results
         return None
