@@ -37,7 +37,6 @@ class MastodonSpotifyBot:
             "client_secret": args.clientsecret,
             "callback_api": args.callback,
             "scope": args.scope,
-            "interval": args.interval,
             "mastodon_instance": args.mastodoninstance,
             "mastodon_access_token": args.mastodonaccesstoken
         }
