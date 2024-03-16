@@ -68,10 +68,19 @@ class MastodonSpotifyBot:
             logger.debug("dados: " + str(dados))
             # envia para o Mastodon
             if dados is None:
-                time.sleep(self.settings["interval"])
+                time.sleep(FIXED_INTERVAL)
                 continue
 
             logger.debug("dados json:\n" + json.dumps(dados, indent=4) )
+
+            if not "is_playing" in dados:
+                logger.error("Missing entry \"is_playing9\"")
+                time.sleep(FIXED_INTERVAL)
+                continue
+
+            if dados["is_playing"] == False:
+                logger.error("Spotify isn't active right now - quitting...")
+                sys.exit(0)
 
             if last_song == dados["item"]["name"]:
                 logger.warning(f"Current song is the same as last song: {last_song}")
@@ -80,6 +89,9 @@ class MastodonSpotifyBot:
 
             last_song = dados["item"]["name"]
             waiting_time_ms = int(dados["progress_ms"])
+            if not th.is_alive():
+                logger.error("Callback server not running - exiting")
+                sys.exit(1)
             logger.info(f"sending update to mastodon: {last_song}")
             self.mstd.toot("Ouvindo agora! \n\n" + \
                            last_song + \
@@ -150,7 +162,7 @@ def callBackAction(localURL : str):
 
     # Bind to the local address only.
     logger.info(f"Starting callback webserver on port {port}")
-    server_address = ('127.0.0.1', port)
+    server_address = ('localhost', port)
     httpd = HTTPServer(server_address, Handler)
     try:
         httpd.serve_forever()
