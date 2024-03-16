@@ -78,23 +78,32 @@ class MastodonSpotifyBot:
                 time.sleep(FIXED_INTERVAL)
                 continue
 
+            if not "progress_ms" in dados:
+                logger.warning("Missing entry for \"progress_ms\"")
+                time.sleep(FIXED_INTERVAL)
+                continue
+
             if dados["is_playing"] == False:
                 logger.error("Spotify isn't active right now - quitting...")
                 sys.exit(0)
 
-            if last_song == dados["item"]["name"]:
-                logger.warning(f"Current song is the same as last song: {last_song}")
-                if "progress_ms" in dados:
-                    time.sleep(int(dados["progress_ms"]) / 1000)
-                else:
-                    time.sleep(FIXED_INTERVAL)
+            waiting_time_ms = int(dados["progress_ms"])
+            waiting_time_seconds = waiting_time_ms / 1000.
+
+            if dados["currently_playing_type"] != "track":
+                logger.info("Not music playing: " + dados["currently_playing_type"])
+                time.sleep(waiting_time_seconds)
                 continue
 
+            if last_song == dados["item"]["name"]:
+                logger.warning(f"Current song is the same as last song: {last_song}")
+                time.sleep(waiting_time_seconds)
+
             last_song = dados["item"]["name"]
-            waiting_time_ms = int(dados["progress_ms"])
             if not th.is_alive():
                 logger.error("Callback server not running - exiting")
                 sys.exit(1)
+
             logger.info(f"sending update to mastodon: {last_song}")
             self.mstd.toot("Ouvindo agora! \n\n" + \
                            last_song + \
@@ -104,11 +113,8 @@ class MastodonSpotifyBot:
                            self.encurta_url(str(dados["item"]["external_urls"]["spotify"])) + \
                            " \n\n " + \
                            "#JuckboxMental")
-            logger.info(f"next song in {waiting_time_ms} ms")
-            if waiting_time_ms is None:
-                time.sleep(FIXED_INTERVAL)
-            else:
-                time.sleep(waiting_time_ms / 1000)
+            logger.info(f"next song in {waiting_time_seconds} s")
+            time.sleep(waiting_time_seconds)
 
     def authenticate_spotify(self):
         "criação do objeto de autenticação do Spotify"
