@@ -98,6 +98,7 @@ class MastodonSpotifyBot:
             if last_song == dados["item"]["name"]:
                 logger.warning(f"Current song is the same as last song: {last_song}")
                 time.sleep(waiting_time_seconds)
+                continue
 
             last_song = dados["item"]["name"]
             if not th.is_alive():
@@ -133,16 +134,19 @@ class MastodonSpotifyBot:
 
     def get_recently_played(self) -> dict:
         "função para pegar os dados do Spotify"
-        try:
-            results = self.sp.current_user_playing_track()
-        except TypeError:
-            return {
+        generic_response = {
                 "is_playing": False,
                 "progress_ms": "%d" % 1 * 60 * 1000 # 1 minute
             }
-        if results["is_playing"]:
-            return results
-        return None
+
+        try:
+            results = self.sp.current_user_playing_track()
+        except TypeError:
+            return  generic_response
+
+        if not "is_playing" in results:
+            return  generic_response
+        return results
 
     def encurta_url(self, url : str):
         "função para o gerenciador SongLink"
