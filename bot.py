@@ -74,7 +74,7 @@ class MastodonSpotifyBot:
             logger.debug("dados json:\n" + json.dumps(dados, indent=4) )
 
             if not "is_playing" in dados:
-                logger.error("Missing entry \"is_playing9\"")
+                logger.error("Missing entry \"is_playing\"")
                 time.sleep(FIXED_INTERVAL)
                 continue
 
@@ -98,6 +98,7 @@ class MastodonSpotifyBot:
             if last_song == dados["item"]["name"]:
                 logger.warning(f"Current song is the same as last song: {last_song}")
                 time.sleep(waiting_time_seconds)
+                continue
 
             last_song = dados["item"]["name"]
             if not th.is_alive():
@@ -133,10 +134,19 @@ class MastodonSpotifyBot:
 
     def get_recently_played(self) -> dict:
         "função para pegar os dados do Spotify"
-        results = self.sp.current_user_playing_track()
-        if results["is_playing"]:
-            return results
-        return None
+        generic_response = {
+                "is_playing": False,
+                "progress_ms": "%d" % 1 * 60 * 1000 # 1 minute
+            }
+
+        try:
+            results = self.sp.current_user_playing_track()
+        except TypeError:
+            return  generic_response
+
+        if not "is_playing" in results:
+            return  generic_response
+        return results
 
     def encurta_url(self, url : str):
         "função para o gerenciador SongLink"
