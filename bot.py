@@ -147,15 +147,16 @@ class MastodonSpotifyBot:
         try:
             results = self.sp.current_user_playing_track()
         except TypeError:
-            return  generic_response
+            return generic_response
 
         if not "is_playing" in results:
-            return  generic_response
+            sys.exit(0)
+
         return results
 
     def encurta_url(self, url : str):
         "função para o gerenciador SongLink"
-        return  Odesli().getByUrl(url).songLink
+        return Odesli().getByUrl(url).songLink
 
 
 def callBackAction(localURL : str):
