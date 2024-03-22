@@ -68,8 +68,8 @@ class MastodonSpotifyBot:
             logger.debug("dados: " + str(dados))
             # envia para o Mastodon
             if dados is None:
-                time.sleep(FIXED_INTERVAL)
-                continue
+                # time.sleep(FIXED_INTERVAL)
+                sys.exit(0)
 
             logger.debug("dados json:\n" + json.dumps(dados, indent=4) )
 
