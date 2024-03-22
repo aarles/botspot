@@ -64,13 +64,8 @@ class MastodonSpotifyBot:
             raise Exception("Failed to start callback service")
 
         while True:
-            try:
-                dados = self.get_recently_played()
-                logger.debug("dados: " + str(dados))
-            except Exception as e:
-                logger.error(f'Error: {e}')
-                continue
-
+            dados = self.get_recently_played()
+            logger.debug("dados: " + str(dados))
             # envia para o Mastodon
             if dados is None:
                 time.sleep(FIXED_INTERVAL)
@@ -147,16 +142,15 @@ class MastodonSpotifyBot:
         try:
             results = self.sp.current_user_playing_track()
         except TypeError:
-            return generic_response
+            return  generic_response
 
         if not "is_playing" in results:
-            return generic_response
-
+            return  generic_response
         return results
 
     def encurta_url(self, url : str):
         "função para o gerenciador SongLink"
-        return Odesli().getByUrl(url).songLink
+        return  Odesli().getByUrl(url).songLink
 
 
 def callBackAction(localURL : str):
