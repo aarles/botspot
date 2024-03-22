@@ -69,7 +69,7 @@ class MastodonSpotifyBot:
                 logger.debug("dados: " + str(dados))
             except Exception as e:
                 logger.error(f'Error: {e}')
-                sys.exit(0)
+                continue
 
             # envia para o Mastodon
             if dados is None:
@@ -150,7 +150,7 @@ class MastodonSpotifyBot:
             return generic_response
 
         if not "is_playing" in results:
-            sys.exit(0)
+            return generic_response
 
         return results
 
