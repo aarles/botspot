@@ -64,12 +64,17 @@ class MastodonSpotifyBot:
             raise Exception("Failed to start callback service")
 
         while True:
-            dados = self.get_recently_played()
-            logger.debug("dados: " + str(dados))
+            try:
+                dados = self.get_recently_played()
+                logger.debug("dados: " + str(dados))
+            except Exception as e:
+                logger.error(f'Error: {e}')
+                sys.exit(0)
+
             # envia para o Mastodon
             if dados is None:
-                # time.sleep(FIXED_INTERVAL)
-                sys.exit(0)
+                time.sleep(FIXED_INTERVAL)
+                continue
 
             logger.debug("dados json:\n" + json.dumps(dados, indent=4) )
 
