@@ -42,7 +42,7 @@ class MastodonSpotifyBot:
             "scope": args.scope,
             "mastodon_instance": args.mastodoninstance,
             "mastodon_access_token": args.mastodonaccesstoken,
-            "keepalive": args.keeplive
+            "keepalive": args.keepalive
         }
 
         if self.settings["client_id"] is None:
@@ -89,7 +89,7 @@ class MastodonSpotifyBot:
 
             if dados["is_playing"] == False:
                 logger.error("Spotify isn't active right now...")
-                if not self.settings["keeplive"]:
+                if not self.settings["keepalive"]:
                     if th.is_alive():
                         signal.pthread_kill(th.ident, signal.SIGTERM)
                     sys.exit(0)
