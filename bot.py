@@ -146,6 +146,8 @@ class MastodonSpotifyBot:
             results = self.sp.current_user_playing_track()
         except TypeError:
             return  generic_response
+        except requests.exceptions.ReadTimeout:
+            return generic_response
         
         if results is None:
             return generic_response
