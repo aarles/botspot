@@ -87,7 +87,7 @@ class MastodonSpotifyBot:
             if dados["is_playing"] == False:
                 logger.error("Spotify isn't active right now - quitting...")
                 if th.is_alive():
-                    signal.pthread_kill(th.ident, signal.SIGKILL)
+                    signal.pthread_kill(th.ident, signal.SIGTERM)
                 sys.exit(0)
 
             waiting_time_ms = int(dados["progress_ms"])
