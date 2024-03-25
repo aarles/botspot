@@ -39,7 +39,8 @@ class MastodonSpotifyBot:
             "callback_api": args.callback,
             "scope": args.scope,
             "mastodon_instance": args.mastodoninstance,
-            "mastodon_access_token": args.mastodonaccesstoken
+            "mastodon_access_token": args.mastodonaccesstoken,
+            "keepalive": args.keeplive
         }
 
         if self.settings["client_id"] is None:
@@ -85,10 +86,13 @@ class MastodonSpotifyBot:
                 continue
 
             if dados["is_playing"] == False:
-                logger.error("Spotify isn't active right now - quitting...")
-                if th.is_alive():
-                    signal.pthread_kill(th.ident, signal.SIGTERM)
-                sys.exit(0)
+                logger.error("Spotify isn't active right now...")
+                if not self.settings["keeplive"]:
+                    if th.is_alive():
+                        signal.pthread_kill(th.ident, signal.SIGTERM)
+                    sys.exit(0)
+                time.sleep(FIXED_INTERVAL)
+                continue
 
             waiting_time_ms = int(dados["progress_ms"])
             waiting_time_seconds = waiting_time_ms / 1000.
@@ -206,6 +210,7 @@ if __name__ == '__main__':
     parse.add_argument('--mastodoninstance', required=False, default='https://mastodon.social', help='The instance you have an account')
     parse.add_argument('--mastodonaccesstoken', required=False, help='The token to access your mastodon account - it can be passed as environment variable MASTODON_ACCESS_TOKEN')
     parse.add_argument('--loglevel', default='info')
+    parse.add_argument('--keepalive', default=False, type=bool, help='To keep it running or exit in case of error')
     args = parse.parse_args()
 
     logger.setLevel(args.loglevel.upper())
