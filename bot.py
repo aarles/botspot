@@ -7,7 +7,7 @@ import time
 import threading
 import re
 import sys
-from  http.server import BaseHTTPRequestHandler, HTTPServer
+from http.server import BaseHTTPRequestHandler, HTTPServer
 import logging
 import json
 import signal
@@ -30,6 +30,8 @@ handler.setFormatter(formatter)
 logger.addHandler(handler)
 
 FIXED_INTERVAL = 60
+# LONG_INTERVAL = 60 * 10
+
 
 class MastodonSpotifyBot:
     def __init__(self, args):
@@ -94,17 +96,19 @@ class MastodonSpotifyBot:
                 time.sleep(FIXED_INTERVAL)
                 continue
 
-            waiting_time_ms = int(dados["progress_ms"])
-            waiting_time_seconds = waiting_time_ms / 1000.
+            progress_time = int(dados["progress_ms"]) / 1000.
+            waiting_time_ms = int(dados["item"]["duration_ms"])
+            waiting_time = waiting_time_ms / 1000.
+            time_s = waiting_time - progress_time
 
             if dados["currently_playing_type"] != "track":
                 logger.info("Not music playing: " + dados["currently_playing_type"])
-                time.sleep(waiting_time_seconds)
+                time.sleep(time_s)
                 continue
 
             if last_song == dados["item"]["name"]:
                 logger.warning(f"Current song is the same as last song: {last_song}")
-                time.sleep(waiting_time_seconds)
+                time.sleep(time_s)
                 continue
 
             last_song = dados["item"]["name"]
@@ -121,8 +125,8 @@ class MastodonSpotifyBot:
                            self.encurta_url(str(dados["item"]["external_urls"]["spotify"])) + \
                            " \n\n " + \
                            "#JuckboxMental")
-            logger.info(f"next song in {waiting_time_seconds} s")
-            time.sleep(waiting_time_seconds)
+            logger.info(f"next song in {time_s} s")
+            time.sleep(time_s)
 
     def authenticate_spotify(self):
         "criação do objeto de autenticação do Spotify"
@@ -156,8 +160,11 @@ class MastodonSpotifyBot:
         if results is None:
             return generic_response
 
-        if not "is_playing" in results:
-            return  generic_response
+        if results:
+
+           if not "is_playing" in results:
+               return  generic_response
+
         return results
 
     def encurta_url(self, url : str):
