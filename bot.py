@@ -10,6 +10,7 @@ import sys
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import logging
 import json
+import signal
 
 ## external modules
 import spotipy
@@ -40,7 +41,8 @@ class MastodonSpotifyBot:
             "callback_api": args.callback,
             "scope": args.scope,
             "mastodon_instance": args.mastodoninstance,
-            "mastodon_access_token": args.mastodonaccesstoken
+            "mastodon_access_token": args.mastodonaccesstoken,
+            "keepalive": args.keepalive
         }
 
         if self.settings["client_id"] is None:
@@ -87,6 +89,10 @@ class MastodonSpotifyBot:
 
             if dados["is_playing"] == False:
                 logger.error("Spotify isn't active right now...")
+                if not self.settings["keepalive"]:
+                    if th.is_alive():
+                        signal.pthread_kill(th.ident, signal.SIGTERM)
+                    sys.exit(0)
                 time.sleep(FIXED_INTERVAL)
                 continue
 
@@ -141,13 +147,18 @@ class MastodonSpotifyBot:
         "função para pegar os dados do Spotify"
         generic_response = {
                 "is_playing": False,
-                "progress_ms": "%d" % 1 * 60 * 1000 # 1 minute
+                "progress_ms": "60000"
             }
 
         try:
             results = self.sp.current_user_playing_track()
         except TypeError:
             return  generic_response
+        except requests.exceptions.ReadTimeout:
+            return generic_response
+        
+        if results is None:
+            return generic_response
 
         if results:
 
@@ -159,6 +170,7 @@ class MastodonSpotifyBot:
     def encurta_url(self, url : str):
         "função para o gerenciador SongLink"
         return  Odesli().getByUrl(url).songLink
+
 
 
 def callBackAction(localURL : str):
@@ -196,8 +208,6 @@ def callBackAction(localURL : str):
     except KeyboardInterrupt:
         return
 
-
-
 if __name__ == '__main__':
     parse = argparse.ArgumentParser(description='Mastodon bot to post your spotify current listening song')
     parse.add_argument('--clientid', required=False, help='Spotify\'s client ID - it can be passed as environment variable SPOTIFY_CLIENT_ID')
@@ -207,6 +217,7 @@ if __name__ == '__main__':
     parse.add_argument('--mastodoninstance', required=False, default='https://mastodon.social', help='The instance you have an account')
     parse.add_argument('--mastodonaccesstoken', required=False, help='The token to access your mastodon account - it can be passed as environment variable MASTODON_ACCESS_TOKEN')
     parse.add_argument('--loglevel', default='info')
+    parse.add_argument('--keepalive', default=False, type=bool, help='To keep it running or exit in case of error')
     args = parse.parse_args()
 
     logger.setLevel(args.loglevel.upper())
